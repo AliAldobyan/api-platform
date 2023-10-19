@@ -7,7 +7,6 @@ const App = () => {
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  console.log("response");
   return (
     <>
       <Layout>
