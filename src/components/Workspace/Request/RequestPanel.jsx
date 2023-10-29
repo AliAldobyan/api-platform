@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
+import { saveAs } from "file-saver";
+
 import { convertKeyValueToObject } from "../../../utils/helpers";
 import UrlEditor from "../../Panes/RequestUrl/UrlEditor";
 import RequestTabGroup from "../../Tab-Groups/RequestTabGroup";
@@ -40,10 +42,29 @@ export default function Request({ setResponse, setLoading, loading }) {
         params: convertKeyValueToObject(queryParams),
         headers: convertKeyValueToObject(headers),
         data,
-        cors: true,
+        responseType: "arraybuffer",
       });
+      // console.log(response.data);
 
-      setResponse(response);
+      const content_type = response.headers["content-type"].split(";")[0];
+      console.log(response.headers);
+      if (content_type === "application/json") {
+        const parsedJson = JSON.parse(new TextDecoder().decode(response.data));
+        response.data = parsedJson;
+
+        setResponse(response);
+      } else if (content_type.split("/")[0] === "text") {
+        const parsedTXT = new TextDecoder().decode(response.data);
+        response.data = parsedTXT;
+        setResponse(response);
+      } else {
+        const fileToDownload = new Blob([response.data], {
+          type: content_type,
+        });
+
+        saveAs(fileToDownload, "download");
+        setResponse(response);
+      }
     } catch (e) {
       console.log(e);
       setResponse(e);
